@@ -18,5 +18,8 @@ let package = Package(
             name: "auroraTests",
             dependencies: ["aurora"]
         ),
+        .testTarget(
+            name: "auroraIntegrationTests"
+        ),
     ]
 )
