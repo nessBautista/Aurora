@@ -66,3 +66,7 @@ fastlane/test_output
 
 # VSCode
 .vscode
+
+# Local config (per-developer machine paths, etc.) — never commit.
+# Use .env.example as the committed template.
+.env
