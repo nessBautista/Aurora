@@ -29,7 +29,11 @@ cd "$PREFLIGHT_DIR/aurora"
 env -i HOME="$HOME" PATH="$PATH" SHELL="$SHELL" bash -c '
     # log the toolchain version so the failure log shows which swift built it
     swift --version | head -1
-    # same command Homebrew runs — if this breaks, brew install will too
+    # Same command Homebrew runs — if this breaks, brew install will too.
+    # --disable-sandbox is required because SwiftPM 6.x wraps manifest
+    # evaluation in sandbox-exec, which fails inside Homebrew'\''s own build
+    # sandbox. Brew disables SwiftPM'\''s inner sandbox; we mirror that here
+    # for parity. 
     swift build -c release --disable-sandbox
     # full test suite, no --filter — preflight runs everything
     swift test

@@ -29,6 +29,10 @@ fi
 swift test --filter auroraTests
 
 # Loop 2: release build + integration tests
+# --disable-sandbox is required for parity with `brew install`, which runs the
+# same command. SwiftPM's sandbox-exec nests poorly inside Homebrew's own
+# build sandbox, so brew disables SwiftPM's; we mirror that locally so a
+# local pass implies a brew pass. 
 swift build -c release --disable-sandbox
 swift test --filter auroraIntegrationTests
 
