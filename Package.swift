@@ -23,10 +23,6 @@ let package = Package(
             path: "Sources/Application/AuroraCLI"
         ),
         .testTarget(
-            name: "auroraTests",
-            dependencies: ["AuroraCLI"]
-        ),
-        .testTarget(
             name: "auroraIntegrationTests"
         ),
     ]
