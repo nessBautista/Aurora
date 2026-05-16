@@ -4,6 +4,7 @@ import ArgumentParser
 struct Aurora: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "aurora",
+        version: auroraVersion,
         subcommands: [Hello.self]
     )
 }
