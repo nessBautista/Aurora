@@ -1,5 +1,5 @@
 import XCTest
-@testable import aurora
+@testable import AuroraCLI
 
 final class GreetTests: XCTestCase {
     func testGreetReturnsHelloName() {
