@@ -13,7 +13,12 @@
 #   (otherwise invoked automatically by git)
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+
+# Resolve to the worktree root via git rather than the script's own $0.
+# When invoked via .git/hooks/pre-push (a symlink), $0 is the symlink path,
+# so `dirname/..` would land us in .git/ — not a worktree. `rev-parse
+# --show-toplevel` is correct for both the hook and manual invocations.
+cd "$(git rev-parse --show-toplevel)"
 
 if [[ -n "$(git status --porcelain)" ]]; then
     echo "✗ uncommitted changes; commit or stash before pushing." >&2
