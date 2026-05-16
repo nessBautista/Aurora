@@ -38,11 +38,25 @@ if [[ -z "${TAP_REPO:-}" ]]; then
         echo "  Copy .env.example to .env and set TAP_REPO to your homebrew-aurora clone path." >&2
         exit 1
     fi
-    # auto-export anything sourced from .env so subshells (git, etc.) see it
-    set -a
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-    set +a
+    # Parse .env safely: read KEY=VAL lines as text, never `source` the file.
+    # A line like FOO=$(rm -rf ~) is stored as the literal string "$(rm -rf ~)"
+    # rather than executed, so a malformed or hostile .env can't run code.
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # skip blanks and #-prefixed comments
+        [[ -z "${line//[[:space:]]/}" || "$line" =~ ^[[:space:]]*# ]] && continue
+        # require KEY=VALUE form; reject `export KEY=...`, multi-line, etc.
+        if [[ ! "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+            echo "✗ ignoring malformed line in $ENV_FILE: $line" >&2
+            continue
+        fi
+        key="${BASH_REMATCH[1]}"
+        val="${BASH_REMATCH[2]}"
+        # strip optional surrounding quotes (single or double)
+        if   [[ "$val" =~ ^\"(.*)\"$ ]]; then val="${BASH_REMATCH[1]}"
+        elif [[ "$val" =~ ^\'(.*)\'$ ]]; then val="${BASH_REMATCH[1]}"
+        fi
+        export "$key=$val"
+    done < "$ENV_FILE"
 fi
 
 # .env existed but didn't define TAP_REPO (or left it blank)
