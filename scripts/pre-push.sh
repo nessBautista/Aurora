@@ -26,7 +26,13 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 # Loop 1: unit tests
-swift test --filter auroraTests
+#
+# Note: there is no `auroraTests` target — `AuroraCLI` is an
+# executableTarget and Xcode cannot run XCTest tests linked against an
+# executable target, so CLI coverage lives only in the integration suite
+# below. Library targets (e.g. AuroraKeychain/AuroraConfig/AuroraSettings
+# from WOR-52 onward) have their own filtered test targets and should be
+# added here once they exist on `main`.
 
 # Loop 2: release build + integration tests
 # --disable-sandbox is required for parity with `brew install`, which runs the
