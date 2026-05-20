@@ -36,11 +36,11 @@ let package = Package(
             dependencies: ["AuroraKeychain"],
             path: "Sources/Execution/AuroraConfig"
         ),
-//        .target(
-//            name: "AuroraSettings",
-//            dependencies: ["AuroraConfig"],
-//            path: "Sources/Execution/AuroraSettings"
-//        ),
+        .target(
+            name: "AuroraSettings",
+            dependencies: ["AuroraConfig"],
+            path: "Sources/Execution/AuroraSettings"
+        ),
 
         // ── Tests ───────────────────────────────────────────────
         // Note: `AuroraCLI` is an executableTarget and Xcode cannot run
@@ -59,9 +59,9 @@ let package = Package(
            name: "AuroraConfigTests",
            dependencies: ["AuroraConfig"]
        ),
-//        .testTarget(
-//            name: "AuroraSettingsTests",
-//            dependencies: ["AuroraSettings"]
-//        ),
+       .testTarget(
+           name: "AuroraSettingsTests",
+           dependencies: ["AuroraSettings"]
+       ),
     ]
 )
