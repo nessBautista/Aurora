@@ -31,11 +31,11 @@ let package = Package(
             name: "AuroraKeychain",
             path: "Sources/Execution/AuroraKeychain"
         ),
-//        .target(
-//            name: "AuroraConfig",
-//            dependencies: ["AuroraKeychain"],
-//            path: "Sources/Execution/AuroraConfig"
-//        ),
+        .target(
+            name: "AuroraConfig",
+            dependencies: ["AuroraKeychain"],
+            path: "Sources/Execution/AuroraConfig"
+        ),
 //        .target(
 //            name: "AuroraSettings",
 //            dependencies: ["AuroraConfig"],
@@ -55,10 +55,10 @@ let package = Package(
             name: "AuroraKeychainTests",
             dependencies: ["AuroraKeychain"]
         ),
-//        .testTarget(
-//            name: "AuroraConfigTests",
-//            dependencies: ["AuroraConfig"]
-//        ),
+       .testTarget(
+           name: "AuroraConfigTests",
+           dependencies: ["AuroraConfig"]
+       ),
 //        .testTarget(
 //            name: "AuroraSettingsTests",
 //            dependencies: ["AuroraSettings"]
