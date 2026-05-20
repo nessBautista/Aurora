@@ -121,9 +121,6 @@ Design decisions recorded elsewhere
 — why throws + UpdateOutcome won over Result<Success, Failure>.
 
 References
-
-- aur_dev/labs/001_keychain/Research.md — the research write-up this
-module is built from. Read it first if you're modifying this code.
 - Apple docs: Keychain Services (https://developer.apple.com/documentation/security/keychain_services)
 - Apple docs: LAContext (https://developer.apple.com/documentation/localauthentication/lacontext)
 
