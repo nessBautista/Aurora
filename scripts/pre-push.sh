@@ -25,14 +25,17 @@ if [[ -n "$(git status --porcelain)" ]]; then
     exit 1
 fi
 
-# Loop 1: unit tests
+# Loop 1: per-target unit + integration tests for the Tier 4 library modules.
+# Run cheapest first so a real regression fails fast before the slow release
+# build below. Order matches the dependency chain (Keychain ← Config ← Settings);
+# if a lower-tier module breaks, the higher tiers are presumed broken too.
 #
-# Note: there is no `auroraTests` target — `AuroraCLI` is an
-# executableTarget and Xcode cannot run XCTest tests linked against an
-# executable target, so CLI coverage lives only in the integration suite
-# below. Library targets (e.g. AuroraKeychain/AuroraConfig/AuroraSettings
-# from WOR-52 onward) have their own filtered test targets and should be
-# added here once they exist on `main`.
+# Note: there is no `auroraTests` target — `AuroraCLI` is an executableTarget
+# and Xcode cannot run XCTest tests linked against an executable target, so
+# CLI coverage lives only in the auroraIntegrationTests suite below.
+swift test --filter AuroraKeychainTests
+swift test --filter AuroraConfigTests
+swift test --filter AuroraSettingsTests
 
 # Loop 2: release build + integration tests
 # --disable-sandbox is required for parity with `brew install`, which runs the
