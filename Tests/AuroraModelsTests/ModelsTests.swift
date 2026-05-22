@@ -174,7 +174,9 @@ final class MessageNormalizerTests: XCTestCase {
 
     func testMergesConsecutiveSameRoleMessages() {
         // Anthropic requires strict user/assistant alternation. Adjacent
-        // same-role messages must be merged by concatenating their content.
+        // same-role messages get their content arrays concatenated — the
+        // individual blocks are preserved (no text-block coalescing), so
+        // extractText joins them with its standard "\n" separator.
         let msgs = [
             Message(role: "user", content: [.text("part 1")]),
             Message(role: "user", content: [.text("part 2")]),
@@ -183,7 +185,8 @@ final class MessageNormalizerTests: XCTestCase {
         let result = MessageNormalizer.normalize(msgs)
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result[0].role, "user")
-        XCTAssertEqual(extractText(result[0].content), "part 1part 2")
+        XCTAssertEqual(result[0].content.count, 2)
+        XCTAssertEqual(extractText(result[0].content), "part 1\npart 2")
         XCTAssertEqual(result[1].role, "assistant")
     }
 
