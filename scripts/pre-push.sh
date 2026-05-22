@@ -34,8 +34,10 @@ fi
 # and Xcode cannot run XCTest tests linked against an executable target, so
 # CLI coverage lives only in the auroraIntegrationTests suite below.
 swift test --filter AuroraKeychainTests
+swift test --filter AuroraModelsTests
 swift test --filter AuroraConfigTests
 swift test --filter AuroraSettingsTests
+swift test --filter AuroraLLMProviderTests
 
 # Loop 2: release build + integration tests
 # --disable-sandbox is required for parity with `brew install`, which runs the
