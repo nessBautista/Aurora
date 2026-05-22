@@ -23,6 +23,12 @@ let package = Package(
             path: "Sources/Application/AuroraCLI"
         ),
         // ── Execution ──────────────────────────────────
+        // ── Tier 2 ─────────────────────────────────────
+            .target(
+                name: "AuroraAgent",
+                dependencies: ["AuroraLLMProvider", "AuroraConfig"],
+                path: "Sources/Execution/AuroraAgent"
+            ),
         // ── Tier 3 ─────────────────────────────────────
         // LLM provider port + Anthropic adapter. Depends on Tier 4
         // only (Models for the wire format; Config for credentials).
@@ -82,5 +88,9 @@ let package = Package(
            name: "AuroraLLMProviderTests",
            dependencies: ["AuroraLLMProvider", "AuroraModels"]
        ),
+        .testTarget(
+            name: "AuroraAgentTests",
+            dependencies: ["AuroraAgent", "AuroraLLMProvider", "AuroraModels"]
+        ),
     ]
 )
