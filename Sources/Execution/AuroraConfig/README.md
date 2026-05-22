@@ -73,8 +73,6 @@ Discipline mirrors the bash reference parser in
 (`[A-Za-z_][A-Za-z0-9_]*`), matched-quote stripping, existing env wins,
 malformed lines logged to stderr.
 
-Threat model: `aur_dev/specs/00_initial_setup/001-hello.md` §§494–520.
-
 ## `op://` references
 
 `.env` values starting with `op://` are resolved by shelling out to

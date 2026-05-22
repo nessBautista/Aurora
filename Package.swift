@@ -22,7 +22,15 @@ let package = Package(
             ],
             path: "Sources/Application/AuroraCLI"
         ),
-
+        // ── Execution ──────────────────────────────────
+        // ── Tier 3 ─────────────────────────────────────
+        // LLM provider port + Anthropic adapter. Depends on Tier 4
+        // only (Models for the wire format; Config for credentials).
+            .target(
+                name: "AuroraLLMProvider",
+                dependencies: ["AuroraModels", "AuroraConfig"],
+                path: "Sources/Execution/AuroraLLMProvider"
+            ),                
         // ── Execution ──────────────────────────────────
         // ── Tier 4 ─────────────────────────────────────
         // Three primitives in a downward chain.
@@ -41,7 +49,10 @@ let package = Package(
             dependencies: ["AuroraConfig"],
             path: "Sources/Execution/AuroraSettings"
         ),
-
+        .target(
+            name: "AuroraModels",
+            path: "Sources/Execution/AuroraModels"
+        ),
         // ── Tests ───────────────────────────────────────────────
         // Note: `AuroraCLI` is an executableTarget and Xcode cannot run
         // XCTest tests linked against an executable target, so CLI
@@ -62,6 +73,14 @@ let package = Package(
        .testTarget(
            name: "AuroraSettingsTests",
            dependencies: ["AuroraSettings"]
+       ),
+       .testTarget(
+           name: "AuroraModelsTests",
+           dependencies: ["AuroraModels"]
+       ),
+       .testTarget(
+           name: "AuroraLLMProviderTests",
+           dependencies: ["AuroraLLMProvider", "AuroraModels"]
        ),
     ]
 )

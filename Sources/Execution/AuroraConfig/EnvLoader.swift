@@ -7,9 +7,8 @@ import Foundation
 /// Parsing discipline mirrors the bash reference parser in
 /// `scripts/bump-tap.sh`: the file is read as data, never sourced. Values
 /// reach `setenv` as literal bytes, so command-substitution payloads like
-/// `$(rm -rf ~)` end up as inert strings rather than executed code. See
-/// `aur_dev/specs/00_initial_setup/001-hello.md` §§494-520 for the threat
-/// model and the documented "treat the file as data" principle.
+/// `$(rm -rf ~)` end up as inert strings rather than executed code — the
+/// "treat the file as data" principle this module is built around.
 ///
 /// - Keys must match `[A-Za-z_][A-Za-z0-9_]*` (POSIX identifier shape).
 ///   Lines that fail this — including `export KEY=val`, leading whitespace

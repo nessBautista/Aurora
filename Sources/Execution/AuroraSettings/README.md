@@ -3,6 +3,13 @@
 UserDefaults-backed persistence for Aurora's user preferences. Holds one
 field today — `selectedProvider` — and grows as new preferences land.
 
+`selectedProvider` records which LLM backend the user has chosen. The
+type itself (`Config.Provider`) lives in `AuroraConfig` and enumerates
+every provider Aurora knows how to talk to. Today there's exactly one
+case (`.anthropic`); more land as new adapters ship. The field is
+optional because "never picked yet" is a real state — that's the
+trigger for the first-run prompt.
+
 ## Public API
 
 ```swift
@@ -10,11 +17,13 @@ Settings                                         // value struct
 Settings(selectedProvider:)                      // init with optional Config.Provider
 
 SettingsStore                                    // UserDefaults wrapper
-SettingsStore(suiteName:)                        // default: "com.aurora.settings"
+SettingsStore(suiteName:)                        // required arg — no default
 
 store.load() -> Settings                         // read; returns Settings() if nothing persisted
 store.save(_ settings: Settings)                 // write; nil provider clears the key
 store.reset()                                    // wipe all Aurora-namespaced keys
+
+makeSettingsStore() -> SettingsStore             // production composition (SettingsStore.swift)
 ```
 
 ## Files
@@ -23,7 +32,7 @@ store.reset()                                    // wipe all Aurora-namespaced k
 |---|---|---|
 | `Settings.swift` | `Settings` value struct | `public` |
 | `SettingsCodec.swift` | `SettingsCodec` enum + `RawValues` — pure encode/decode | `internal` |
-| `SettingsStore.swift` | `SettingsStore` — UserDefaults I/O | `public` |
+| `SettingsStore.swift` | `SettingsStore` (UserDefaults I/O) + `makeSettingsStore()` factory | `public` |
 
 Only the cross-module contract is `public`. `SettingsCodec` is `internal`;
 tests reach it via `@testable import AuroraSettings`.
@@ -32,13 +41,18 @@ tests reach it via `@testable import AuroraSettings`.
 
 | Type | Role | Semantics |
 |---|---|---|
-| `Settings` (struct) | Data shape | Value — passed around as snapshot copies; mutating a copy can't affect persisted state |
-| `SettingsCodec` (enum) | Encode/decode between `Settings` and the `String?` raws UserDefaults persists | Pure — no I/O |
+| `Settings` (struct) | Data shape callers hold and pass around | Value — mutating a copy can't affect persisted state |
+| `SettingsCodec` (enum) | Translation between `Settings` and the `String?` raws UserDefaults persists | Pure — no I/O |
 | `SettingsStore` (final class) | UserDefaults `load` / `save` / `reset` | Reference — callers share one handle to the plist |
 
-UserDefaults can't store Swift enums directly, so the codec layer maps
-`Config.Provider ↔ String` via `rawValue` / `init(rawValue:)`. Keeping that
-mapping in a pure enum means every codec branch is testable without
+The split keeps each layer testable on its own: codec tests don't need
+a plist, store tests use a throwaway one. Callers outside the module
+only see `Settings` and `SettingsStore` — they can't stringly-type
+their way into the persistence layer because the codec is `internal`.
+
+UserDefaults can't store Swift enums directly, so the codec maps
+`Config.Provider ↔ String` via `rawValue` / `init(rawValue:)`. Keeping
+that mapping in a pure enum means every branch is testable without
 touching UserDefaults.
 
 ## Forward compatibility
@@ -51,14 +65,22 @@ re-prompted, the app stays alive. Pinned by
 
 ## Suite names
 
-`UserDefaults(suiteName:)` controls where the plist lands. The default
-`"com.aurora.settings"` writes to
+`suiteName` is the name of the plist file UserDefaults writes to. On
+macOS, `UserDefaults(suiteName: "foo")` is backed by
+`~/Library/Preferences/foo.plist`. It's Foundation's API, not Aurora's
+invention — Aurora just uses it to keep tests and production pointing
+at different files.
+
+Production callers go through `makeSettingsStore()`, which supplies
+`"com.aurora.settings"` — written to
 `~/Library/Preferences/com.aurora.settings.plist`.
 
 Tests pass a UUID-namespaced suite (e.g.,
 `"com.aurora.test.\(UUID().uuidString)"`) and call `removePersistentDomain`
 in `tearDown`, so each test gets a throwaway plist and the developer's
-real preferences are never touched.
+real preferences are never touched. `SettingsStore.init` has no default
+`suiteName:` value, so a test that forgets to override is a compile error
+rather than a silent write to the production plist.
 
 `UserDefaults(suiteName:)` returns nil only for reserved names (e.g., the
 global domain). `SettingsStore` falls back to `.standard` in that case,
