@@ -38,6 +38,7 @@ swift test --filter AuroraModelsTests
 swift test --filter AuroraConfigTests
 swift test --filter AuroraSettingsTests
 swift test --filter AuroraLLMProviderTests
+swift test --filter AuroraAgentTests
 
 # Loop 2: release build + integration tests
 # --disable-sandbox is required for parity with `brew install`, which runs the
