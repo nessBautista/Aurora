@@ -19,6 +19,7 @@ let package = Package(
             name: "AuroraCLI",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "AuroraAgent",
             ],
             path: "Sources/Application/AuroraCLI"
         ),

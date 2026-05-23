@@ -1,11 +1,15 @@
 import ArgumentParser
 
 @main
-struct Aurora: ParsableCommand {
+struct Aurora: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "aurora",
         version: auroraVersion,
-        subcommands: [Hello.self]
+        subcommands: [
+            Hello.self,
+            AuthCommand.self,
+            ChatCommand.self,
+        ]
     )
 }
 
