@@ -10,6 +10,8 @@ case (`.anthropic`); more land as new adapters ship. The field is
 optional because "never picked yet" is a real state — that's the
 trigger for the first-run prompt.
 
+*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+
 ## Public API
 
 ```swift

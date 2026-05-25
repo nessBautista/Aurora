@@ -4,6 +4,8 @@ The wire-format adapter layer. Adapters translate Aurora's internal
 `Message` / `ContentBlock` model (defined in `AuroraModels`) to and from a
 specific LLM provider's request/response shape.
 
+*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+
 ## Public API
 
 ```swift

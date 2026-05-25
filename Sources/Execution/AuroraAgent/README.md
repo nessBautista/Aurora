@@ -4,6 +4,8 @@ Tier 2 feature facade — the single import surface Application code uses
 to reach the Execution layer. Composes `Config` (credentials, env
 loading) and `APIClient` (HTTP + retry) into a working `Agent`.
 
+*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+
 ## Public API
 
 ```swift

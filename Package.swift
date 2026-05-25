@@ -28,7 +28,8 @@ let package = Package(
             .target(
                 name: "AuroraAgent",
                 dependencies: ["AuroraLLMProvider", "AuroraConfig"],
-                path: "Sources/Execution/AuroraAgent"
+                path: "Sources/Execution/AuroraAgent",
+                exclude: ["README.md"]
             ),
         // ── Tier 3 ─────────────────────────────────────
         // LLM provider port + Anthropic adapter. Depends on Tier 4
@@ -36,29 +37,34 @@ let package = Package(
             .target(
                 name: "AuroraLLMProvider",
                 dependencies: ["AuroraModels", "AuroraConfig"],
-                path: "Sources/Execution/AuroraLLMProvider"
-            ),                
+                path: "Sources/Execution/AuroraLLMProvider",
+                exclude: ["README.md"]
+            ),
         // ── Execution ──────────────────────────────────
         // ── Tier 4 ─────────────────────────────────────
         // Three primitives in a downward chain.
         // Keychain ← Config ← Settings. No upward edges, no cycles.
         .target(
             name: "AuroraKeychain",
-            path: "Sources/Execution/AuroraKeychain"
+            path: "Sources/Execution/AuroraKeychain",
+            exclude: ["README.md"]
         ),
         .target(
             name: "AuroraConfig",
             dependencies: ["AuroraKeychain"],
-            path: "Sources/Execution/AuroraConfig"
+            path: "Sources/Execution/AuroraConfig",
+            exclude: ["README.md"]
         ),
         .target(
             name: "AuroraSettings",
             dependencies: ["AuroraConfig"],
-            path: "Sources/Execution/AuroraSettings"
+            path: "Sources/Execution/AuroraSettings",
+            exclude: ["README.md"]
         ),
         .target(
             name: "AuroraModels",
-            path: "Sources/Execution/AuroraModels"
+            path: "Sources/Execution/AuroraModels",
+            exclude: ["README.md"]
         ),
         // ── Tests ───────────────────────────────────────────────
         // Note: `AuroraCLI` is an executableTarget and Xcode cannot run
