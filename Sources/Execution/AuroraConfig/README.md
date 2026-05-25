@@ -4,6 +4,8 @@ Provider-keyed credential resolution. Walks the priority chain
 `env > keychain > .env > missing` for each provider and copies the found key
 into the process environment so downstream code can `getenv(...)` blindly.
 
+*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+
 ## Public API
 
 ```swift

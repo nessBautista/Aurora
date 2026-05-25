@@ -3,6 +3,8 @@
 macOS keychain wrapper for Aurora's API-key storage. Reads are gated behind
 Touch ID (with password fallback) via `LAContext`.
 
+*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+
 ## Public API
 
 ```swift

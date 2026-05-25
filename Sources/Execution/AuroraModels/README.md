@@ -9,6 +9,8 @@ The vocabulary tracks the Anthropic Messages API (`"user"` /
 `"assistant"` roles; `text` / `tool_use` / `tool_result` blocks); other
 providers' adapters translate to and from these types.
 
+*Every file in this module is part of the public surface (`Public/`).*
+
 ## `Message`
 
 One conversational turn — a role plus its content blocks.
