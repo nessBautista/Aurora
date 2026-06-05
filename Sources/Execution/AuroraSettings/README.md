@@ -10,7 +10,7 @@ case (`.anthropic`); more land as new adapters ship. The field is
 optional because "never picked yet" is a real state — that's the
 trigger for the first-run prompt.
 
-*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+*Public surface lives in `Public/`; implementation details in `Implementation/`; production composition in `Factory/`.*
 
 ## Public API
 
@@ -25,16 +25,17 @@ store.load() -> Settings                         // read; returns Settings() if 
 store.save(_ settings: Settings)                 // write; nil provider clears the key
 store.reset()                                    // wipe all Aurora-namespaced keys
 
-makeSettingsStore() -> SettingsStore             // production composition (SettingsStore.swift)
+makeSettingsStore() -> SettingsStore             // production composition (Factory/)
 ```
 
 ## Files
 
 | File | Holds | Access |
 |---|---|---|
-| `Settings.swift` | `Settings` value struct | `public` |
-| `SettingsCodec.swift` | `SettingsCodec` enum + `RawValues` — pure encode/decode | `internal` |
-| `SettingsStore.swift` | `SettingsStore` (UserDefaults I/O) + `makeSettingsStore()` factory | `public` |
+| `Public/Settings.swift` | `Settings` value struct | `public` |
+| `Implementation/SettingsCodec.swift` | `SettingsCodec` enum + `RawValues` — pure encode/decode | `internal` |
+| `Public/SettingsStore.swift` | `SettingsStore` (UserDefaults I/O) | `public` |
+| `Factory/SettingsStoreFactory.swift` | `makeSettingsStore()` — production composition | `public` |
 
 Only the cross-module contract is `public`. `SettingsCodec` is `internal`;
 tests reach it via `@testable import AuroraSettings`.

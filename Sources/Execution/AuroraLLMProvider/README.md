@@ -4,7 +4,7 @@ The wire-format adapter layer. Adapters translate Aurora's internal
 `Message` / `ContentBlock` model (defined in `AuroraModels`) to and from a
 specific LLM provider's request/response shape.
 
-*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+*Public surface lives in `Public/`; implementation details in `Implementation/`; production composition in `Factory/`.*
 
 ## Public API
 
@@ -19,7 +19,7 @@ BootInfo(providerName:modelId:apiKeySource:)     // value type for the startup b
 TransientError(kind:body:)                        // retry-worthy failure (thrown by callAPI)
 BadResponse(provider:detail:bodyPreview:)         // unparseable response (thrown by callAPI)
 
-makeAPIClient(for: Config.Provider) -> APIClient // production composition (APIClient.swift)
+makeAPIClient(for: Config.Provider) -> APIClient // production composition (Factory/)
 ```
 
 That's the entire contract. Callers cannot name `LLMProvider`,
@@ -138,15 +138,18 @@ providers that honor the schema.
 
 | File | Holds | Access |
 |---|---|---|
-| `LLMProvider.swift` | `LLMProvider` protocol + `makeLLMProvider(for:)` factory | `internal` |
-| `LLMProvider+Errors.swift` | `TransientError`, `BadResponse` | `public` |
-| `AnthropicProvider.swift` | `AnthropicProvider` concrete adapter | `internal` |
-| `OpenRouterProvider.swift` | `OpenRouterProvider` concrete adapter — OpenAI-compatible | `internal` |
-| `APIClient.swift` | `APIClient`, `BootInfo`, `makeAPIClient()` factory | `public` |
+| `Implementation/LLMProvider.swift` | `LLMProvider` protocol (module-private DI seam) | `internal` |
+| `Public/LLMProvider+Errors.swift` | `TransientError`, `BadResponse` | `public` |
+| `Implementation/AnthropicProvider.swift` | `AnthropicProvider` concrete adapter | `internal` |
+| `Implementation/OpenRouterProvider.swift` | `OpenRouterProvider` concrete adapter — OpenAI-compatible | `internal` |
+| `Public/APIClient.swift` | `APIClient`, `BootInfo` | `public` |
+| `Factory/APIClientFactory.swift` | `makeAPIClient()` (public) + `makeLLMProvider()` (internal) — production composition | mixed |
 
-`make*` factories live at the bottom of the file that defines what they
-build. They are the only places production code resolves a concrete
-implementation; everything else takes its collaborators by injection.
+Production composition lives in `Factory/`: `makeAPIClient()` wires the
+public client, and the internal `makeLLMProvider()` it calls is the only
+place production code resolves a `Config.Provider` to a concrete adapter.
+Everything else takes its collaborators by injection; tests construct
+`APIClient(provider:backoffSeconds:)` directly with a stub.
 
 ## Tests
 
