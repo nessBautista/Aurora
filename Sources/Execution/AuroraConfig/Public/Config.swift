@@ -16,22 +16,26 @@ public enum Config {
     /// in a single place.
     public enum Provider: String, CaseIterable {
         case anthropic
-        
+        case openrouter
+
         public var envVarName: String {
             switch self {
-            case .anthropic: return "ANTHROPIC_API_KEY"
+            case .anthropic:  return "ANTHROPIC_API_KEY"
+            case .openrouter: return "OPENROUTER_API_KEY"
             }
         }
         
         public var keychainAccount: String {
             switch self {
-            case .anthropic: return "anthropic_api_key"
+            case .anthropic:  return "anthropic_api_key"
+            case .openrouter: return "openrouter_api_key"
             }
         }
         
         public var displayName: String {
             switch self {
-            case .anthropic: return "Anthropic"
+            case .anthropic:  return "Anthropic"
+            case .openrouter: return "OpenRouter"
             }
         }
     }

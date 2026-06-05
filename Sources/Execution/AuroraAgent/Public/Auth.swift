@@ -7,6 +7,7 @@ public enum AgentAuth {
     /// Mirrors `Config.Provider`.
     public enum Provider: String, CaseIterable {
         case anthropic
+        case openrouter
     }
 
     /// Where an API key lives. Mirrors `Config.KeySource`.
@@ -46,7 +47,8 @@ public enum AgentAuth {
     /// error in the test, not a silent runtime fallthrough).
     internal static func toConfig(_ provider: Provider) -> Config.Provider {
         switch provider {
-        case .anthropic: return .anthropic
+        case .anthropic:  return .anthropic
+        case .openrouter: return .openrouter
         }
     }
 }

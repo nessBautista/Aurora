@@ -17,8 +17,22 @@ final class ConfigProviderEnumTests: XCTestCase {
         XCTAssertEqual(Config.Provider.anthropic.displayName, "Anthropic")
     }
 
-    func testAllCasesContainsOnlyAnthropicThisPhase() {
-        XCTAssertEqual(Config.Provider.allCases, [.anthropic])
+    // MARK: OpenRouter (WOR-56)
+
+    func testOpenRouterEnvVarName() {
+        XCTAssertEqual(Config.Provider.openrouter.envVarName, "OPENROUTER_API_KEY")
+    }
+
+    func testOpenRouterKeychainAccount() {
+        XCTAssertEqual(Config.Provider.openrouter.keychainAccount, "openrouter_api_key")
+    }
+
+    func testOpenRouterDisplayName() {
+        XCTAssertEqual(Config.Provider.openrouter.displayName, "OpenRouter")
+    }
+
+    func testAllCasesIncludesBothProviders() {
+        XCTAssertEqual(Set(Config.Provider.allCases), [.anthropic, .openrouter])
     }
 }
 
