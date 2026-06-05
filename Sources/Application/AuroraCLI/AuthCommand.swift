@@ -6,7 +6,7 @@ struct AuthCommand: AsyncParsableCommand {
     static let configuration: CommandConfiguration = .init(
         commandName: "auth",
         abstract: "Manage Aurora's stored API Keys",
-        subcommands: [Set.self, Status.self, Clear.self]
+        subcommands: [Set.self, Status.self, Clear.self, Use.self]
     )
     
     
@@ -18,7 +18,7 @@ struct AuthCommand: AsyncParsableCommand {
             abstract: "Store an API key in the macOS keychain (Touch ID protected)."
         )
 
-        @Argument(help: "Provider: anthropic")
+        @Argument(help: "Provider: \(providerList)")
         var providerName: String
 
         func run() throws {
@@ -68,7 +68,7 @@ struct AuthCommand: AsyncParsableCommand {
             abstract: "Remove a stored API key from the keychain."
         )
 
-        @Argument(help: "Provider: anthropic")
+        @Argument(help: "Provider: \(providerList)")
         var providerName: String
 
         func run() throws {
@@ -77,11 +77,33 @@ struct AuthCommand: AsyncParsableCommand {
             print("✓ Removed from keychain.")
         }
     }
+
+    // MARK: - use
+
+    struct Use: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(
+            commandName: "use",
+            abstract: "Set the default provider for `aurora chat`."
+        )
+
+        @Argument(help: "Provider: \(providerList)")
+        var providerName: String
+
+        func run() throws {
+            let provider = try parseProvider(providerName)
+            AgentAuth.setActiveProvider(provider)
+            print("✓ Default provider set to \(provider.rawValue). "
+                + "`aurora chat` will use it unless overridden by --provider or LLM_PROVIDER.")
+        }
+    }
 }
 
 
-/// Centralized provider parsing.
-private func parseProvider(_ name: String) throws -> AgentAuth.Provider {
+/// Human-readable provider list for help text.
+let providerList = AgentAuth.Provider.allCases.map(\.rawValue).joined(separator: " | ")
+
+/// Centralized provider parsing (shared by the auth subcommands and `chat`).
+func parseProvider(_ name: String) throws -> AgentAuth.Provider {
     guard let provider = AgentAuth.Provider(rawValue: name.lowercased()) else {
         let valid = AgentAuth.Provider.allCases.map(\.rawValue).joined(separator: ", ")
         throw ValidationError("Unknown provider '\(name)'. Valid: \(valid)")

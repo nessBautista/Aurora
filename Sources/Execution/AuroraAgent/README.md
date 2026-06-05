@@ -22,7 +22,11 @@ try AgentAuth.setKey(_ provider: Provider, _ key: String)
 AgentAuth.clearKey(_ provider: Provider)
 AgentAuth.keyStatus(_ provider: Provider) -> KeyStatus
 
-AgentFactory.makeDefault() async -> Agent        // production composition
+AgentAuth.setActiveProvider(_ provider: Provider)        // persist `auth use` choice
+AgentAuth.activeProviderSelection() -> Provider?         // the stored choice, or nil
+AgentAuthError.noProviderSelected                        // thrown when nothing selects a provider
+
+AgentFactory.makeDefault(providerOverride:) async throws -> Agent  // production composition
 ```
 
 That's the entire Application-visible surface. `DefaultAgent` (the
@@ -106,7 +110,7 @@ factories.
 | `ProviderInfo.swift` | `ProviderInfo` value type returned by `Agent.providerInfo` | `public` |
 | `DefaultAgent.swift` | `DefaultAgent` final class — the single production concrete | `internal` |
 | `Auth.swift` | `AgentAuth` namespace + `Provider` + `KeyStatus` enums + `setKey`/`clearKey`/`keyStatus`/`toConfig` | `public` surface, `internal` translator |
-| `AgentFactory.swift` | `AgentFactory` namespace + `makeDefault()` + `make(client:)` | `public` (`makeDefault`), `internal` (`make`) |
+| `AgentFactory.swift` | `AgentFactory` namespace + `makeDefault(providerOverride:)` + `make(client:)` | `public` (`makeDefault`), `internal` (`make`) |
 
 ## Tests
 

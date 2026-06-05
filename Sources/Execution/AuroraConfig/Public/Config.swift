@@ -65,6 +65,27 @@ public enum Config {
         return .missing
     }
     
+    /// Pure provider-selection precedence: `--provider` (already validated by
+    /// the CLI) → `LLM_PROVIDER` env → the stored `Settings.selectedProvider`.
+    /// Returns `nil` when nothing selects a provider anywhere — the caller
+    /// surfaces a "run `aurora auth use`" hint rather than silently defaulting.
+    ///
+    /// `envRaw` is parsed leniently here (case-insensitive; an unrecognized
+    /// value is ignored and falls through). A typo'd `--provider` never
+    /// reaches this function — it's a `ValidationError` at the CLI boundary,
+    /// matching `auth set`.
+    public static func resolveActiveProvider(
+        override: Provider?,
+        envRaw: String?,
+        storedSelection: Provider?
+    ) -> Provider? {
+        if let override { return override }
+        if let envRaw, let parsed = Provider(rawValue: envRaw.lowercased()) {
+            return parsed
+        }
+        return storedSelection
+    }
+
     // MARK: - I/O orchestration
     
     /// Store a provider's API key in the macOS keychain.

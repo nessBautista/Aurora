@@ -1,6 +1,7 @@
 import XCTest
 @testable import AuroraAgent
 @testable import AuroraConfig
+import AuroraSettings
 
 final class AgentAuthTranslationTests: XCTestCase {
 
@@ -27,6 +28,46 @@ final class AgentAuthTranslationTests: XCTestCase {
         // name" rename.
         let all: [AgentAuth.KeyStatus] = [.env, .keychain, .envFile, .missing]
         XCTAssertEqual(Set(all).count, all.count)
+    }
+}
+
+// MARK: - Active provider selection (persisted via AuroraSettings)
+
+final class AgentAuthActiveProviderTests: XCTestCase {
+
+    private var store: SettingsStore!
+    private var suiteName: String!
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "com.aurora.test.\(UUID().uuidString)"
+        store = SettingsStore(suiteName: suiteName)
+    }
+
+    override func tearDown() {
+        store.reset()
+        UserDefaults().removePersistentDomain(forName: suiteName)
+        super.tearDown()
+    }
+
+    func testNoSelectionReturnsNil() {
+        XCTAssertNil(AgentAuth.activeProviderSelection(store: store))
+    }
+
+    func testSetThenGetRoundTripsOpenRouter() {
+        AgentAuth.setActiveProvider(.openrouter, store: store)
+        XCTAssertEqual(AgentAuth.activeProviderSelection(store: store), .openrouter)
+    }
+
+    func testSetThenGetRoundTripsAnthropic() {
+        AgentAuth.setActiveProvider(.anthropic, store: store)
+        XCTAssertEqual(AgentAuth.activeProviderSelection(store: store), .anthropic)
+    }
+
+    func testOverwriteReplacesSelection() {
+        AgentAuth.setActiveProvider(.anthropic, store: store)
+        AgentAuth.setActiveProvider(.openrouter, store: store)
+        XCTAssertEqual(AgentAuth.activeProviderSelection(store: store), .openrouter)
     }
 }
 
