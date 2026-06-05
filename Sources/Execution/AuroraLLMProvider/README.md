@@ -19,7 +19,7 @@ BootInfo(providerName:modelId:apiKeySource:)     // value type for the startup b
 TransientError(kind:body:)                        // retry-worthy failure (thrown by callAPI)
 BadResponse(provider:detail:bodyPreview:)         // unparseable response (thrown by callAPI)
 
-makeAPIClient() -> APIClient                     // production composition (APIClient.swift)
+makeAPIClient(for: Config.Provider) -> APIClient // production composition (APIClient.swift)
 ```
 
 That's the entire contract. Callers cannot name `LLMProvider`,
@@ -37,7 +37,7 @@ adapter is in use — that's by design. Hiding the seam means:
   zero impact on the module's public surface.
 - Callers can't accidentally couple to `AnthropicProvider` specifics.
 - The only place production code resolves a concrete is
-  `makeLLMProvider()` inside the module.
+  `makeLLMProvider(for:)` inside the module.
 
 ## Adapters
 
@@ -138,7 +138,7 @@ providers that honor the schema.
 
 | File | Holds | Access |
 |---|---|---|
-| `LLMProvider.swift` | `LLMProvider` protocol + `makeLLMProvider()` factory | `internal` |
+| `LLMProvider.swift` | `LLMProvider` protocol + `makeLLMProvider(for:)` factory | `internal` |
 | `LLMProvider+Errors.swift` | `TransientError`, `BadResponse` | `public` |
 | `AnthropicProvider.swift` | `AnthropicProvider` concrete adapter | `internal` |
 | `OpenRouterProvider.swift` | `OpenRouterProvider` concrete adapter — OpenAI-compatible | `internal` |

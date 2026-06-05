@@ -15,7 +15,7 @@ final class ChatCommandTests: XCTestCase {
 
     func testChatProducesNonEmptyResponse() async throws {
         try skipIfNoApiKey()
-        let result = try runAurora(args: ["chat", "Reply with just the word PONG."])
+        let result = try runAurora(args: ["chat", "--provider", "anthropic", "Reply with just the word PONG."])
         XCTAssertEqual(result.exitCode, 0)
         XCTAssertFalse(
             result.stdoutTrimmed.isEmpty,
@@ -25,7 +25,7 @@ final class ChatCommandTests: XCTestCase {
 
     func testBannerGoesToStderrNotStdout() async throws {
         try skipIfNoApiKey()
-        let result = try runAurora(args: ["chat", "Reply with just the word PONG."])
+        let result = try runAurora(args: ["chat", "--provider", "anthropic", "Reply with just the word PONG."])
         // stdout should be the model's reply only — no banner header.
         XCTAssertFalse(result.stdout.contains("─── aurora ──"))
         // stderr should carry the banner.
@@ -49,9 +49,20 @@ final class ChatCommandTests: XCTestCase {
             )
         }
 
-        let result = try runAurora(args: ["chat", "hi"])
+        let result = try runAurora(args: ["chat", "--provider", "anthropic", "hi"])
         XCTAssertNotEqual(result.exitCode, 0)
         XCTAssertTrue(result.stderr.contains("no API key configured"))
         XCTAssertTrue(result.stderr.contains("aurora auth set anthropic"))
+    }
+
+    // MARK: - provider flag validation (hermetic — fails before any network)
+
+    func testProviderFlagRejectsUnknown() throws {
+        let result = try runAurora(args: ["chat", "--provider", "bogus", "hi"])
+        XCTAssertNotEqual(result.exitCode, 0)
+        XCTAssertTrue(
+            result.stderr.contains("Unknown provider") || result.stdout.contains("Unknown provider"),
+            "expected ValidationError for unknown --provider; got stdout=\(result.stdout) stderr=\(result.stderr)"
+        )
     }
 }

@@ -13,9 +13,18 @@ public enum AgentFactory {
     /// `Config.load()` snapshots `originalKeySource` on first call so the
     /// banner can still show "keychain (Touch ID)" after the keychain
     /// value is copied into env (see `Config.originalKeySource(for:)`).
-    public static func makeDefault() async -> Agent {
+    public static func makeDefault(providerOverride: AgentAuth.Provider? = nil) async throws -> Agent {
         await Config.load()
-        return DefaultAgent(client: makeAPIClient())
+        // Selection waterfall: --provider (CLI) → LLM_PROVIDER env → the
+        // stored `aurora auth use` choice. No silent default — `nil` means
+        // nothing was chosen, surfaced as a setup hint.
+        let resolved = Config.resolveActiveProvider(
+            override: providerOverride.map(AgentAuth.toConfig),
+            envRaw: ProcessInfo.processInfo.environment["LLM_PROVIDER"],
+            storedSelection: AgentAuth.activeProviderSelection().map(AgentAuth.toConfig)
+        )
+        guard let provider = resolved else { throw AgentAuthError.noProviderSelected }
+        return DefaultAgent(client: makeAPIClient(for: provider))
     }
 
     /// Test / advanced injection point. Takes an explicit `APIClient` —

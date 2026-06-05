@@ -73,4 +73,24 @@ final class AuthCommandTests: XCTestCase {
             "expected ValidationError mentioning unknown provider; got stdout=\(result.stdout) stderr=\(result.stderr)"
         )
     }
+
+    // MARK: - use (provider selection)
+
+    func testUseSubcommandIsRegistered() throws {
+        // Verify the subcommand exists via its abstract in the auth help.
+        // (Happy-path persistence is unit-tested in AgentAuthActiveProviderTests;
+        // we avoid mutating the developer's real `com.aurora.settings` here.)
+        let result = try runAurora(args: ["auth", "--help"])
+        XCTAssertEqual(result.exitCode, 0)
+        XCTAssertTrue(result.stdout.contains("Set the default provider"))
+    }
+
+    func testUseRejectsUnknownProvider() throws {
+        let result = try runAurora(args: ["auth", "use", "bogus"])
+        XCTAssertNotEqual(result.exitCode, 0)
+        XCTAssertTrue(
+            result.stderr.contains("Unknown provider") || result.stdout.contains("Unknown provider"),
+            "expected ValidationError for unknown provider; got stdout=\(result.stdout) stderr=\(result.stderr)"
+        )
+    }
 }

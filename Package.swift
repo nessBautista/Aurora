@@ -27,7 +27,7 @@ let package = Package(
         // ── Tier 2 ─────────────────────────────────────
             .target(
                 name: "AuroraAgent",
-                dependencies: ["AuroraLLMProvider", "AuroraConfig"],
+                dependencies: ["AuroraLLMProvider", "AuroraConfig", "AuroraSettings"],
                 path: "Sources/Execution/AuroraAgent",
                 exclude: ["README.md"]
             ),
@@ -97,7 +97,7 @@ let package = Package(
        ),
         .testTarget(
             name: "AuroraAgentTests",
-            dependencies: ["AuroraAgent", "AuroraLLMProvider", "AuroraModels"]
+            dependencies: ["AuroraAgent", "AuroraLLMProvider", "AuroraModels", "AuroraSettings"]
         ),
     ]
 )

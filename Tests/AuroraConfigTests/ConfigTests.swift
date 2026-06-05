@@ -82,6 +82,58 @@ final class ConfigResolveKeySourceTests: XCTestCase {
     }
 }
 
+// MARK: - resolveActiveProvider — pure selection precedence
+
+final class ConfigResolveActiveProviderTests: XCTestCase {
+
+    func testOverrideWinsOverEverything() {
+        XCTAssertEqual(
+            Config.resolveActiveProvider(override: .anthropic, envRaw: "openrouter", storedSelection: .openrouter),
+            .anthropic
+        )
+    }
+
+    func testEnvUsedWhenNoOverride() {
+        XCTAssertEqual(
+            Config.resolveActiveProvider(override: nil, envRaw: "openrouter", storedSelection: .anthropic),
+            .openrouter
+        )
+    }
+
+    func testEnvIsCaseInsensitive() {
+        XCTAssertEqual(
+            Config.resolveActiveProvider(override: nil, envRaw: "OpenRouter", storedSelection: nil),
+            .openrouter
+        )
+    }
+
+    func testInvalidEnvFallsThroughToStored() {
+        XCTAssertEqual(
+            Config.resolveActiveProvider(override: nil, envRaw: "bogus", storedSelection: .anthropic),
+            .anthropic
+        )
+    }
+
+    func testStoredUsedWhenNoOverrideOrEnv() {
+        XCTAssertEqual(
+            Config.resolveActiveProvider(override: nil, envRaw: nil, storedSelection: .openrouter),
+            .openrouter
+        )
+    }
+
+    func testNilWhenNothingSelected() {
+        XCTAssertNil(
+            Config.resolveActiveProvider(override: nil, envRaw: nil, storedSelection: nil)
+        )
+    }
+
+    func testInvalidEnvWithNoStoredReturnsNil() {
+        XCTAssertNil(
+            Config.resolveActiveProvider(override: nil, envRaw: "bogus", storedSelection: nil)
+        )
+    }
+}
+
 // MARK: - loadEnvFile — parser hardening
 
 final class LoadEnvFileTests: XCTestCase {

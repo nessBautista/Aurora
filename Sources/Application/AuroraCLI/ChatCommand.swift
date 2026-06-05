@@ -11,8 +11,21 @@ struct ChatCommand: AsyncParsableCommand {
     @Argument(help: "The prompt to send.")
     var prompt: String
 
+    @Option(name: .long, help: "Override the LLM provider for this call: \(providerList)")
+    var provider: String?
+
     func run() async throws {
-        let agent = await Container.makeAgent()
+        // A typo'd `--provider` is a ValidationError here (matches `auth set`).
+        let override = try provider.map(parseProvider)
+
+        let agent: Agent
+        do {
+            agent = try await Container.makeAgent(providerOverride: override)
+        } catch let error as AgentAuthError {
+            // No provider chosen anywhere — point the user at the fix.
+            StdIO.writeStderr("Error: \(error.errorDescription ?? "no provider selected").\n")
+            throw ExitCode.failure
+        }
 
         // Banner reads agent.providerInfo, whose apiKeySource field
         // comes from the pre-load snapshot Config captured during
@@ -24,12 +37,15 @@ struct ChatCommand: AsyncParsableCommand {
         do {
             print(try await agent.chat(prompt))
         } catch {
-            // If the user simply hasn't set up a key, give them a setup
-            // hint instead of the raw API auth error.
-            if AgentAuth.keyStatus(.anthropic) == .missing {
+            // If the user simply hasn't set up a key for the RESOLVED
+            // provider, give them a setup hint instead of the raw API auth
+            // error. `apiKeySource == "missing"` is the provider-agnostic
+            // signal (no env / keychain / .env key anywhere).
+            let info = agent.providerInfo
+            if info.apiKeySource == "missing" {
                 StdIO.writeStderr(
-                    "Error: no API key configured. " +
-                    "Run `aurora auth set anthropic` to store one.\n"
+                    "Error: no API key configured for \(info.providerName). " +
+                    "Run `aurora auth set \(info.providerName.lowercased())` to store one.\n"
                 )
             } else {
                 StdIO.writeStderr("Error: \(error.localizedDescription)\n")
