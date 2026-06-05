@@ -20,7 +20,6 @@
 
 import Foundation
 import AuroraModels
-import AuroraConfig
 
 protocol LLMProvider {
     /// Display name for the boot banner — `"Anthropic"`, `"OpenRouter"`, etc.
@@ -72,18 +71,3 @@ extension LLMProvider {
 }
 
 // `TransientError` and `BadResponse` live in `LLMProvider+Errors.swift`.
-
-// MARK: - Production composition
-
-/// Resolves a `Config.Provider` to its concrete `LLMProvider` adapter. This
-/// is the only place production code maps the provider enum to a concrete.
-///
-/// `internal` — `LLMProvider` is a module-private DI seam. External callers
-/// compose through `makeAPIClient(for:)` and never name a provider concrete
-/// directly.
-func makeLLMProvider(for provider: Config.Provider) -> LLMProvider {
-    switch provider {
-    case .anthropic:  return AnthropicProvider()
-    case .openrouter: return OpenRouterProvider()
-    }
-}

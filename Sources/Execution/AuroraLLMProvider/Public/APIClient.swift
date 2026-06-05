@@ -10,15 +10,14 @@
 ///   - Tool schemas, system prompts (passed in by callers).
 ///   - Message normalization (providers run it as their first step).
 ///
-/// Instantiation: production callers go through `makeAPIClient()` at the
-/// bottom of this file. Tests (`@testable import AuroraLLMProvider`)
+/// Instantiation: production callers go through `makeAPIClient()` in
+/// `Factory/APIClientFactory.swift`. Tests (`@testable import AuroraLLMProvider`)
 /// construct directly with `APIClient(provider: stub, backoffSeconds:
 /// { _ in 0 })`. The `init(provider:...)` is `internal`, so external
 /// modules can't reach in and bypass the production composition path.
 
 import Foundation
 import AuroraModels
-import AuroraConfig
 
 /// Snapshot of provider identity surfaced for the startup banner. Lives
 /// on `APIClient.bootInfo` so external callers can render it without
@@ -111,15 +110,4 @@ public struct APIClient {
             userInfo: [NSLocalizedDescriptionKey: "Unknown API error"]
         )
     }
-}
-
-// MARK: - Production composition
-
-/// Returns an `APIClient` wired to the adapter for `provider`, with
-/// production retry tuning (5 attempts, exponential backoff 2/4/8/16s).
-///
-/// Tests construct `APIClient` directly and pass a stub provider plus a
-/// 0-second backoff; they do not call this function.
-public func makeAPIClient(for provider: Config.Provider) -> APIClient {
-    APIClient(provider: makeLLMProvider(for: provider))
 }

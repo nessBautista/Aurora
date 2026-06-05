@@ -3,9 +3,9 @@ import Foundation
 /// UserDefaults-backed persistence for `Settings`.
 ///
 /// `suiteName` is the load-bearing knob — it controls where the plist
-/// lands. Production callers go through `makeSettingsStore()` at the
-/// bottom of this file, which supplies the production suite
-/// (`com.aurora.settings`). Tests pass a UUID-namespaced suite name so
+/// lands. Production callers go through `makeSettingsStore()` in
+/// `Factory/SettingsStoreFactory.swift`, which supplies the production
+/// suite (`com.aurora.settings`). Tests pass a UUID-namespaced suite name so
 /// they don't pollute the real preferences domain on the developer's
 /// machine.
 ///
@@ -45,18 +45,4 @@ public final class SettingsStore {
     public func reset() {
         defaults.removeObject(forKey: SettingsCodec.selectedProviderKey)
     }
-}
-
-// MARK: - Production composition
-
-/// Returns a `SettingsStore` pointed at Aurora's production preferences
-/// domain (`com.aurora.settings`).
-///
-/// Tests construct `SettingsStore(suiteName:)` directly with a
-/// UUID-namespaced suite so they don't pollute the developer's real
-/// preferences. `SettingsStore.init` has no default `suiteName:` value,
-/// so a test that forgets to override is a compile error.
-
-public func makeSettingsStore() -> SettingsStore {
-    SettingsStore(suiteName: "com.aurora.settings")
 }

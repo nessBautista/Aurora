@@ -4,7 +4,7 @@ Tier 2 feature facade — the single import surface Application code uses
 to reach the Execution layer. Composes `Config` (credentials, env
 loading) and `APIClient` (HTTP + retry) into a working `Agent`.
 
-*Public surface lives in `Public/`; implementation details in `Implementation/`.*
+*Public surface lives in `Public/`; implementation details in `Implementation/`; production composition in `Factory/`.*
 
 ## Public API
 
@@ -117,11 +117,11 @@ factory. The application composition root lands at the CLI layer and invokes
 
 | File | Holds | Access |
 |---|---|---|
-| `Agent.swift` | `Agent` protocol — the public Tier 2 contract (single landmark) | `public` |
-| `ProviderInfo.swift` | `ProviderInfo` value type returned by `Agent.providerInfo` | `public` |
-| `DefaultAgent.swift` | `DefaultAgent` final class — the single production concrete | `internal` |
-| `Auth.swift` | `AgentAuth` namespace + `Provider`/`KeyStatus` enums + `setKey`/`clearKey`/`keyStatus` + `setActiveProvider`/`activeProviderSelection` + `toConfig`/`fromConfig`; plus `AgentAuthError` | `public` surface, `internal` translators |
-| `AgentFactory.swift` | `AgentFactory` namespace + `makeDefault(providerOverride:)` + `make(client:)` | `public` (`makeDefault`), `internal` (`make`) |
+| `Public/Agent.swift` | `Agent` protocol — the public Tier 2 contract (single landmark) | `public` |
+| `Public/ProviderInfo.swift` | `ProviderInfo` value type returned by `Agent.providerInfo` | `public` |
+| `Implementation/DefaultAgent.swift` | `DefaultAgent` final class — the single production concrete | `internal` |
+| `Public/Auth.swift` | `AgentAuth` namespace + `Provider`/`KeyStatus` enums + `setKey`/`clearKey`/`keyStatus` + `setActiveProvider`/`activeProviderSelection` + `toConfig`/`fromConfig`; plus `AgentAuthError` | `public` surface, `internal` translators |
+| `Factory/AgentFactory.swift` | `AgentFactory` namespace + `makeDefault(providerOverride:)` + `make(client:)` — production composition (the Tier 2 Composition Root) | `public` (`makeDefault`), `internal` (`make`) |
 
 ## Tests
 
