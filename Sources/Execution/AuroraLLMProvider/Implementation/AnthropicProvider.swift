@@ -1,31 +1,6 @@
-/// # AnthropicProvider.swift — Direct Anthropic Messages API
-///
-/// Talks to `https://api.anthropic.com/v1/messages` directly. The
-/// request/response shape is what Aurora's internal `ContentBlock` model is
-/// designed around, so the translation is mostly identity.
-///
-/// ## Model lookup order
-///
-///   `ANTHROPIC_CHEAP_MODEL_ID` → `ANTHROPIC_MODEL_ID` → `MODEL_ID` (legacy)
-///   → `"claude-sonnet-4-6"` (default).
-///
-/// `ANTHROPIC_CHEAP_MODEL_ID` is a deliberate "use cheap model" toggle for
-/// expensive workflows (live integration tests, long agent loops); when set,
-/// it always wins.
-///
-/// ## Timing dance
-///
-///   - `modelId` is **computed**, not captured at init — reads the env on
-///     every access. `Config.load()` populates env from `.env` before any
-///     `performRequest` runs, so model overrides in `.env` work.
-///   - `apiKeySource` is **also computed**, but reads
-///     `Config.originalKeySource(for: .anthropic)` which serves a snapshot
-///     from BEFORE `Config.load()` mutated env. So the banner still shows
-///     "keychain (Touch ID)" after the keychain value got copied into env.
-///   - `apiKey` is read fresh in `performRequest`, not captured in init.
-///   - No `fatalError` on missing key — `performRequest` sends an empty key
-///     and lets Anthropic's 401 surface. Phase 5's CLI shapes that into a
-///     setup hint.
+/// Direct Anthropic Messages API adapter. See the module README for the wire
+/// format, model-id lookup order, and the credential/timing conventions
+/// shared by all adapters.
 
 import Foundation
 import AuroraModels
