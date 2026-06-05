@@ -4,17 +4,18 @@ import AuroraLLMProvider
 
 public enum AgentFactory {
 
-    /// Production `Agent`. `async` because it runs `Config.load()` before
-    /// constructing the agent — this is what makes `.env`-based model
-    /// overrides (`ANTHROPIC_MODEL_ID`, etc.) and keychain-sourced
-    /// `ANTHROPIC_API_KEY` take effect on the first read of
-    /// `agent.providerInfo` (the banner) and the first `chat()` call.
+    /// Production `Agent`. `async` because it authenticates the resolved
+    /// provider's key via `Config.loadKey(for:)` (which may prompt Touch ID).
     ///
-    /// `Config.load()` snapshots `originalKeySource` on first call so the
-    /// banner can still show "keychain (Touch ID)" after the keychain
-    /// value is copied into env (see `Config.originalKeySource(for:)`).
+    /// Order matters: `loadEnvironment()` first (prompt-free — loads `.env` so
+    /// an `LLM_PROVIDER`/model override there counts, and snapshots
+    /// `originalKeySource` so the banner stays honest) → resolve the active
+    /// provider → `loadKey(for:)` for **only** that provider. Loading just the
+    /// resolved provider's key is deliberate: it avoids prompting the keychain
+    /// for providers this call won't use.
     public static func makeDefault(providerOverride: AgentAuth.Provider? = nil) async throws -> Agent {
-        await Config.load()
+        // Prompt-free: load `.env` + snapshot before resolving.
+        Config.loadEnvironment()
         // Selection waterfall: --provider (CLI) → LLM_PROVIDER env → the
         // stored `aurora auth use` choice. No silent default — `nil` means
         // nothing was chosen, surfaced as a setup hint.
@@ -24,6 +25,8 @@ public enum AgentFactory {
             storedSelection: AgentAuth.activeProviderSelection().map(AgentAuth.toConfig)
         )
         guard let provider = resolved else { throw AgentAuthError.noProviderSelected }
+        // Only now authenticate — and only the resolved provider's key.
+        await Config.loadKey(for: provider)
         return DefaultAgent(client: makeAPIClient(for: provider))
     }
 

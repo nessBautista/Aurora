@@ -49,9 +49,9 @@ differs. Adding one is a pure internal change (see the section above).
 
 - **`modelId` is computed on every access**, not captured at init — it reads
   the environment each time, so model overrides loaded from `.env` (via
-  `Config.load()`) take effect for requests issued after load.
+  `Config.loadEnvironment()`) take effect for requests issued after load.
 - **`apiKeySource` is computed** from `Config.originalKeySource(for:)`, a
-  snapshot taken *before* `Config.load()` copies a keychain value into the
+  snapshot taken *before* `Config.loadKey(for:)` copies a keychain value into the
   environment. This keeps the boot banner honest — it still reports
   "keychain (Touch ID)" rather than "env var" after load.
 - **`apiKey` is read fresh inside `performRequest`**, never captured at init,

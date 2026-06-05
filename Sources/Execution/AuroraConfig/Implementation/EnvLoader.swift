@@ -19,7 +19,7 @@ import Foundation
 ///   `op read` CLI.
 /// - Silent no-op if the file doesn't exist.
 ///
-/// `internal` — only `Config.loadInto` calls this. Tests reach it via
+/// `internal` — only `Config.loadEnvironmentInto` calls this. Tests reach it via
 /// `@testable import AuroraConfig` if needed.
 func loadEnvFile(_ path: String) {
     guard let contents = try? String(contentsOfFile: path, encoding: .utf8) else { return }

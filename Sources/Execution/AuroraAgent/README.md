@@ -83,24 +83,35 @@ prompt Touch ID on `setKey` (writing) but not on `clearKey` or
 
 ## `AgentFactory`
 
-The Tier 2 facade factory. `makeDefault()` is the production composition
-path:
+The Tier 2 facade factory. `makeDefault(providerOverride:)` is the production
+composition path:
 
 ```swift
-public static func makeDefault() async -> Agent {
-    await Config.load()
-    return DefaultAgent(client: makeAPIClient())
+public static func makeDefault(providerOverride: AgentAuth.Provider? = nil) async throws -> Agent {
+    Config.loadEnvironment()                       // prompt-free: .env + snapshot
+    let resolved = Config.resolveActiveProvider(
+        override: providerOverride.map(AgentAuth.toConfig),
+        envRaw: ProcessInfo.processInfo.environment["LLM_PROVIDER"],
+        storedSelection: AgentAuth.activeProviderSelection().map(AgentAuth.toConfig)
+    )
+    guard let provider = resolved else { throw AgentAuthError.noProviderSelected }
+    await Config.loadKey(for: provider)            // authenticate ONLY the resolved provider
+    return DefaultAgent(client: makeAPIClient(for: provider))
 }
 ```
 
-`Config.load()` populates the process env from keychain + `.env` (and
-snapshots `originalKeySource` so the banner stays honest). `makeAPIClient()`
-constructs the `APIClient` against the Anthropic provider.
+`Config.loadEnvironment()` loads `.env` and snapshots `originalKeySource`
+(prompt-free), so the banner stays honest and an `LLM_PROVIDER` in `.env`
+counts. The **provider-selection waterfall** — `providerOverride` (the CLI's
+`--provider`) → `LLM_PROVIDER` env → the stored `auth use` selection — picks the
+active provider; `nil` (nothing
+selected anywhere) throws `AgentAuthError.noProviderSelected` rather than
+silently defaulting. `makeAPIClient(for:)` then builds the `APIClient` against
+that provider's adapter.
 
-This factory is **not** the application composition root — it's a Tier
-2 facade factory. The application composition root lands at the CLI
-layer and invokes `AgentFactory.makeDefault()` alongside other module
-factories.
+This factory is **not** the application composition root — it's a Tier 2 facade
+factory. The application composition root lands at the CLI layer and invokes
+`AgentFactory.makeDefault(providerOverride:)` alongside other module factories.
 
 ## Files
 
@@ -109,7 +120,7 @@ factories.
 | `Agent.swift` | `Agent` protocol — the public Tier 2 contract (single landmark) | `public` |
 | `ProviderInfo.swift` | `ProviderInfo` value type returned by `Agent.providerInfo` | `public` |
 | `DefaultAgent.swift` | `DefaultAgent` final class — the single production concrete | `internal` |
-| `Auth.swift` | `AgentAuth` namespace + `Provider` + `KeyStatus` enums + `setKey`/`clearKey`/`keyStatus`/`toConfig` | `public` surface, `internal` translator |
+| `Auth.swift` | `AgentAuth` namespace + `Provider`/`KeyStatus` enums + `setKey`/`clearKey`/`keyStatus` + `setActiveProvider`/`activeProviderSelection` + `toConfig`/`fromConfig`; plus `AgentAuthError` | `public` surface, `internal` translators |
 | `AgentFactory.swift` | `AgentFactory` namespace + `makeDefault(providerOverride:)` + `make(client:)` | `public` (`makeDefault`), `internal` (`make`) |
 
 ## Tests

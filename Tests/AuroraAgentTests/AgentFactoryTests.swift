@@ -31,7 +31,7 @@ final class AgentFactoryTests: XCTestCase {
         XCTAssertTrue(trace.called, "make(client:) did not wire the injected client into the agent")
     }
 
-    // makeDefault() is not unit-tested here — it calls Config.load() and
+    // makeDefault() is not unit-tested here — it calls Config.loadKey() and
     // makeAPIClient(), both of which reach real macOS keychain / Anthropic.
     // Phase 5's integration tests exercise the full path; D.3 below is the
     // optional manual smoke test for WOR-54.

@@ -9,23 +9,26 @@ into the process environment so downstream code can `getenv(...)` blindly.
 ## Public API
 
 ```swift
-Config.Provider                                  // enum { .anthropic }
+Config.Provider                                  // enum { .anthropic, .openrouter }
 Config.KeySource                                 // enum { .env, .keychain, .envFile, .missing }
 
 try Config.setAPIKey(for:_:)                     // store in keychain
     Config.clearAPIKey(for:)                     // remove from keychain (idempotent)
     Config.keySource(for:)                       // live: where would this come from now?
-    Config.originalKeySource(for:)               // snapshot: where did it come from BEFORE load() ran?
-await Config.load()                              // resolve all providers into process env
+    Config.originalKeySource(for:)               // snapshot: where did it come from BEFORE load ran?
+    Config.resolveActiveProvider(override:envRaw:storedSelection:)  // pure selection precedence
+    Config.loadEnvironment()                     // load .env + snapshot key sources (PROMPT-FREE)
+await Config.loadKey(for:)                        // authenticate ONE provider's key (Touch ID)
 ```
 
-`load()` is `async` because the keychain read prompts Touch ID via
-`LAContext`. Call it once during startup, before anything reads provider env
-vars.
+`loadEnvironment()` is prompt-free (touches no keychain) — call it first, then
+resolve the active provider, then `loadKey(for:)` for *only* that provider.
+Splitting the load this way means `chat` prompts Touch ID for the one provider
+it actually uses, not every stored provider.
 
 `setAPIKey` throws `Keychain.KeychainError`. Other functions don't throw —
-`load()` swallows keychain errors so a Touch ID cancel falls through to
-`.env` rather than aborting.
+`loadKey` swallows keychain errors so a Touch ID cancel falls through rather
+than aborting.
 
 ## Priority chain
 
@@ -52,14 +55,14 @@ functions are `internal`, reached from tests via `@testable import AuroraConfig`
 
 ## `originalKeySource` — what it solves
 
-`load()` calls `setenv` to copy keys into the process env. After it runs,
-`keySource(for:)` will *always* report `.env` for any found key — because
+`loadKey(for:)` calls `setenv` to copy a key into the process env. After it
+runs, `keySource(for:)` will *always* report `.env` for that key — because
 the var is in the env block now, regardless of where it came from.
 
-`loadInto` snapshots the pre-`load` answer into a private dictionary
+`loadEnvironment()` snapshots the pre-load answer into a private dictionary
 before any `setenv` call. `originalKeySource(for:)` reads from that
 snapshot, so UI banners can honestly say "from keychain (Touch ID)" rather
-than "from env" after `load()`.
+than "from env" after `loadKey` ran.
 
 ## `.env` parser safety
 

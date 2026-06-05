@@ -134,6 +134,26 @@ final class ConfigResolveActiveProviderTests: XCTestCase {
     }
 }
 
+// MARK: - loadKey — prompt-free short-circuit
+
+final class ConfigLoadKeyTests: XCTestCase {
+
+    func testLoadKeyNoOpWhenEnvAlreadySet() async {
+        // When the env var is already present, loadKey must NOT touch the
+        // keychain (no Touch ID prompt) and must leave the value unchanged.
+        // This short-circuit is what keeps the resolved-provider read quiet
+        // when a key is supplied via env / .env.
+        let key = "ANTHROPIC_API_KEY"
+        let saved = ProcessInfo.processInfo.environment[key]
+        setenv(key, "preset-value", 1)
+        defer { if let s = saved { setenv(key, s, 1) } else { unsetenv(key) } }
+
+        await Config.loadKey(for: .anthropic)
+
+        XCTAssertEqual(ProcessInfo.processInfo.environment[key], "preset-value")
+    }
+}
+
 // MARK: - loadEnvFile — parser hardening
 
 final class LoadEnvFileTests: XCTestCase {

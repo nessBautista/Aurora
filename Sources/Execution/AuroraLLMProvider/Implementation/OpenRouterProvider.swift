@@ -93,7 +93,7 @@ struct OpenRouterProvider: LLMProvider {
         _ = forcedTool
         _ = tools
 
-        // Read API key fresh — Config.load() may have populated it after init.
+        // Read API key fresh — Config.loadKey(for:) may have populated it after init.
         let apiKey = ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"] ?? ""
 
         var request = URLRequest(url: apiURL)
