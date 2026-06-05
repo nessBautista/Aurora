@@ -46,10 +46,12 @@ final class SettingsCodecTests: XCTestCase {
     }
 
     func testDecodeUnknownRawReturnsEmpty() {
-        // Forward-compat: a future version may write "openrouter" before
-        // the current binary knows about it. Don't crash; return nil.
+        // Forward-compat: a future version may persist a provider this binary
+        // doesn't recognize. Don't crash; return empty settings. (Uses a
+        // deliberately non-existent raw so it stays "unknown" as real
+        // providers get added.)
         XCTAssertEqual(
-            SettingsCodec.decode(selectedProviderRaw: "openrouter"),
+            SettingsCodec.decode(selectedProviderRaw: "future-provider-not-yet-known"),
             Settings()
         )
     }
