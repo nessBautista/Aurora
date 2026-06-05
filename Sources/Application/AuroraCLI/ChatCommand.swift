@@ -29,7 +29,7 @@ struct ChatCommand: AsyncParsableCommand {
 
         // Banner reads agent.providerInfo, whose apiKeySource field
         // comes from the pre-load snapshot Config captured during
-        // makeDefault → Config.load(). So the banner still shows
+        // makeDefault → Config.loadEnvironment()/loadKey(). So the banner still shows
         // "keychain (Touch ID)" even though env now has the key copied
         // from keychain.
         printBanner(agent.providerInfo)

@@ -124,42 +124,44 @@ public enum Config {
         preLoadKeySources[provider] ?? keySource(for: provider)
     }
     
-    /// Resolve credentials for every known provider into process env.
-    /// Priority is `env > keychain > .env > missing` per provider.
-    /// `async` because `Keychain.get` is async (it calls `LAContext.evaluatePolicy`).
-    public static func load() async {
-        await loadInto(envFilePath: defaultEnvFilePath())
+    /// Load non-secret environment: snapshot each provider's original key
+    /// source (for honest banners) and load the `.env` file. **Prompt-free** —
+    /// reads no keychain secrets — so it's safe to call *before* resolving
+    /// which provider to use. Pair with `loadKey(for:)` to authenticate the
+    /// chosen provider's key.
+    public static func loadEnvironment() {
+        loadEnvironmentInto(envFilePath: defaultEnvFilePath())
     }
-    
+
+    /// Authenticate and load **one** provider's API key into process env — the
+    /// only path that may prompt Touch ID. No-op when the env var is already
+    /// set (shell env or `.env`). `try?` is deliberate: keychain errors
+    /// (cancel, biometry off, locked) leave the key unset rather than abort.
+    public static func loadKey(for provider: Provider) async {
+        guard ProcessInfo.processInfo.environment[provider.envVarName] == nil else { return }
+        if let key = try? await Keychain.get(
+            service: keychainService,
+            account: provider.keychainAccount,
+            prompt: "Aurora needs your \(provider.displayName) API key"
+        ), !key.isEmpty {
+            setenv(provider.envVarName, key, 1)
+        }
+    }
+
     // MARK: - Internal seam
-    
-    /// Same as `load()` but accepts an explicit `.env` path so tests can
-    /// verify the path used without `chdir`-ing the process.
-    internal static func loadInto(envFilePath: String) async {
-        // Snapshot pre-load key source per provider. Once set on first
-        // load, never overwritten.
+
+    /// Same as `loadEnvironment()` but accepts an explicit `.env` path so tests
+    /// can verify the path used without `chdir`-ing the process.
+    internal static func loadEnvironmentInto(envFilePath: String) {
+        // Snapshot pre-load key source per provider. Once set on first load,
+        // never overwritten — keeps `originalKeySource` honest after a later
+        // `loadKey` copies a keychain value into env.
         for provider in Provider.allCases where preLoadKeySources[provider] == nil {
             preLoadKeySources[provider] = keySource(for: provider)
         }
-        
-        // Per-provider: env > keychain. Skip the keychain prompt for any
-        // provider whose env var is already populated. `try?` is deliberate
-        // — keychain errors (cancel, biometry off, locked) should fall
-        // through to .env loading rather than abort `load()` entirely.
-        for provider in Provider.allCases {
-            if ProcessInfo.processInfo.environment[provider.envVarName] == nil {
-                if let key = try? await Keychain.get(
-                    service: keychainService,
-                    account: provider.keychainAccount,
-                    prompt: "Aurora needs your \(provider.displayName) API key"
-                ), !key.isEmpty {
-                    setenv(provider.envVarName, key, 1)
-                }
-            }
-        }
-        
-        // Always load .env for non-API-key configuration. Silent if file
-        // missing; never overrides a var already in process env.
+        // Load `.env` for non-API-key config (and any keys a user chose to put
+        // there). Loaded BEFORE any keychain read, so a key present in `.env`
+        // suppresses the prompt in `loadKey`.
         loadEnvFile(envFilePath)
     }
     
